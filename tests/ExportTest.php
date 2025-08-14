@@ -180,3 +180,57 @@ it('exports paths with query parameters', function () {
     }
 });
 
+it('exports with locale creates subdirectory', function () {
+    $locale = 'fr';
+    
+    // First, export the default files (required by afterEach)
+    $defaultExporter = app(Exporter::class);
+    $defaultExporter
+        ->crawl(false)
+        ->paths(['/', '/about', '/feed/blog.atom', '/redirect'])
+        ->export();
+    
+    // Create a new exporter instance for locale export
+    app()->forgetInstance(Exporter::class);
+    $localeExporter = app(Exporter::class);
+    $localeExporter
+        ->setLocale($locale)
+        ->crawl(false)
+        ->paths(['/', '/about', '/feed/blog.atom', '/redirect'])
+        ->export();
+
+    // Check if files are created in locale subdirectory
+    assertFileExists(__DIR__."/dist/{$locale}/index.html");
+    assertFileExists(__DIR__."/dist/{$locale}/about/index.html");
+    assertFileExists(__DIR__."/dist/{$locale}/feed/blog.atom");
+    assertFileExists(__DIR__."/dist/{$locale}/redirect/index.html");
+
+    // Check content is correct
+    assertEquals(HOME_CONTENT, file_get_contents(__DIR__."/dist/{$locale}/index.html"));
+    assertEquals(ABOUT_CONTENT, file_get_contents(__DIR__."/dist/{$locale}/about/index.html"));
+    assertEquals(FEED_CONTENT, file_get_contents(__DIR__."/dist/{$locale}/feed/blog.atom"));
+});
+
+it('exports without locale to root directory', function () {
+    app(Exporter::class)
+        ->crawl(false)
+        ->paths(['/', '/about', '/feed/blog.atom', '/redirect'])
+        ->export();
+
+    // Check if files are created in root directory (not in locale subdirectory)
+    assertFileExists(__DIR__."/dist/index.html");
+    assertFileExists(__DIR__."/dist/about/index.html");
+    assertFileExists(__DIR__."/dist/feed/blog.atom");
+    assertFileExists(__DIR__."/dist/redirect/index.html");
+
+    // Ensure no locale subdirectory was created
+    expect(file_exists(__DIR__."/dist/en"))->toBeFalse();
+    expect(file_exists(__DIR__."/dist/fr"))->toBeFalse();
+    expect(file_exists(__DIR__."/dist/es"))->toBeFalse();
+
+    // Check content is correct
+    assertEquals(HOME_CONTENT, file_get_contents(__DIR__."/dist/index.html"));
+    assertEquals(ABOUT_CONTENT, file_get_contents(__DIR__."/dist/about/index.html"));
+    assertEquals(FEED_CONTENT, file_get_contents(__DIR__."/dist/feed/blog.atom"));
+});
+

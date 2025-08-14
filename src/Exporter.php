@@ -9,9 +9,12 @@ use Spatie\Export\Jobs\CleanDestination;
 use Spatie\Export\Jobs\CrawlSite;
 use Spatie\Export\Jobs\ExportPath;
 use Spatie\Export\Jobs\IncludeFile;
+use Spatie\Export\Traits\NormalizedPath;
 
 class Exporter
 {
+    use NormalizedPath;
+    
     /** @var \Illuminate\Contracts\Bus\Dispatcher */
     protected $dispatcher;
 
@@ -49,6 +52,8 @@ class Exporter
     public function crawl(bool $crawl): self
     {
         $this->crawl = $crawl;
+
+        // TODO: 
 
         return $this;
     }
@@ -96,21 +101,27 @@ class Exporter
         }
 
         if ($this->crawl) {
-            $this->dispatcher->dispatchNow(
-                new CrawlSite
-            );
+            $crawlJob = new CrawlSite();
+            if ($this->locale) {
+                $crawlJob->setLocale($this->locale);
+            }
+            $this->dispatcher->dispatchNow($crawlJob);
         }
 
         foreach ($this->paths as $path) {
-            $this->dispatcher->dispatchNow(
-                new ExportPath($path)
-            );
+            $exportJob = new ExportPath($path);
+            if ($this->locale) {
+                $exportJob->setLocale($this->locale);
+            }
+            $this->dispatcher->dispatchNow($exportJob);
         }
 
         foreach ($this->includeFiles as $source => $target) {
-            $this->dispatcher->dispatchNow(
-                new IncludeFile($source, $target, $this->excludeFilePatterns)
-            );
+            $includeJob = new IncludeFile($source, $target, $this->excludeFilePatterns);
+            if ($this->locale) {
+                $includeJob->setLocale($this->locale);
+            }
+            $this->dispatcher->dispatchNow($includeJob);
         }
     }
 }

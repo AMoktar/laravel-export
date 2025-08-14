@@ -6,9 +6,12 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
 use Spatie\Export\Destination;
+use Spatie\Export\Traits\NormalizedPath;
 
 class IncludeFile
 {
+    use NormalizedPath;
+
     /** @var string */
     protected $source;
 
@@ -43,6 +46,11 @@ class IncludeFile
         }
 
         $target = '/'.ltrim($target, '/');
+        
+        // Apply locale subdirectory if locale is set
+        if ($this->locale) {
+            $target = '/' . $this->locale . $target;
+        }
 
         $destination->write($target, file_get_contents($source));
     }

@@ -36,11 +36,18 @@ class ExportCommand extends Command
         $this->addOption('skip-all', null, InputOption::VALUE_NONE, 'Skip all hooks');
         $this->addOption('skip-before', null, InputOption::VALUE_NONE, 'Skip all before hooks');
         $this->addOption('skip-after', null, InputOption::VALUE_NONE, 'Skip all after hooks');
+        $this->addOption('locale', null, InputOption::VALUE_REQUIRED, 'Set the locale for the export');
     }
 
     public function handle(Exporter $exporter)
     {
         $this->runBeforeHooks();
+
+        $locale = $this->option('locale');
+        if ($locale) {
+            $exporter->setLocale($locale);
+            $this->info("Exporting site with locale: {$locale}");
+        }
 
         $this->info('Exporting site...');
 

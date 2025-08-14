@@ -188,6 +188,78 @@ php artisan export --skip-after
 php artisan export --skip-all
 ```
 
+### Locale Support
+
+Laravel Export supports exporting sites with locale-specific subdirectories. When a locale is explicitly specified, all exported files will be placed in a subdirectory named after the locale code.
+
+**Note**: Locale subdirectories are only created when explicitly requested. Without the `--locale` option, files are exported to the root of the output directory as usual.
+
+#### Configuration
+
+You can document available locales in the configuration file:
+
+```php
+// config/export.php
+
+return [
+    // Other configuration...
+    
+    /*
+     * The default locale for exports. This is mainly for documentation
+     * and programmatic usage. To use locale subdirectories, you must
+     * explicitly pass the --locale option to the export command or call
+     * setLocale() programmatically.
+     * 
+     * When a locale is set, exported files will be placed in a subdirectory
+     * named after the locale (e.g., 'en/', 'fr/', 'es/').
+     */
+    'locale' => env('EXPORT_LOCALE', null),
+
+    /*
+     * Available locales for the export. This is mainly for documentation
+     * purposes and validation in your application.
+     */
+    'locales' => [
+        'en' => 'English',
+        'fr' => 'French',
+        'es' => 'Spanish',
+        // Add more locales as needed...
+    ],
+];
+```
+
+#### Command Usage
+
+**Default behavior (no locale):**
+```bash
+php artisan export
+```
+Files are exported to the root of the output directory:
+- `/about` → `dist/about/index.html`
+- `/blog/post` → `dist/blog/post/index.html`
+
+**With locale subdirectories:**
+```bash
+php artisan export --locale=fr
+```
+Files are exported to a locale subdirectory:
+- `/about` → `dist/fr/about/index.html`
+- `/blog/post` → `dist/fr/blog/post/index.html`
+- `/api/data.json` → `dist/fr/api/data.json`
+
+#### Programmatic Usage
+
+You can also set the locale programmatically:
+
+```php
+use Spatie\Export\Exporter;
+
+app(Exporter::class)
+    ->setLocale('fr')
+    ->paths(['/', '/about', '/contact'])
+    ->export();
+```
+
 ## Usage
 
 To build a bundle, run the `export` command:

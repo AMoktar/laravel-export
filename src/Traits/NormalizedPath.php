@@ -6,6 +6,14 @@ use Illuminate\Support\Str;
 
 trait NormalizedPath
 {
+    protected ?string $locale = null;
+
+    public function setLocale (?string $locale): self
+    {
+        $this->locale = $locale;
+        return $this;
+    }
+    
     protected function normalizePath(string $path)
     {
         // Sanitize path for filesystem compatibility
@@ -15,7 +23,14 @@ trait NormalizedPath
             $path .= '/index.html';
         }
 
-        return ltrim($path, '/');
+        $normalizedPath = ltrim($path, '/');
+
+        // Add locale subdirectory if locale is set
+        if ($this->locale) {
+            $normalizedPath = $this->locale . '/' . $normalizedPath;
+        }
+
+        return $normalizedPath;
     }
 
     protected function sanitizePathForFilesystem(string $path): string
