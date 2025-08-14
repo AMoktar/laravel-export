@@ -50,34 +50,6 @@ return [
     'disk' => null,
 
     /*
-     * The default locale for exports. This is mainly for documentation
-     * and programmatic usage. To use locale subdirectories, you must
-     * explicitly pass the --locale option to the export command or call
-     * setLocale() programmatically.
-     * 
-     * When a locale is set, exported files will be placed in a subdirectory
-     * named after the locale (e.g., 'en/', 'fr/', 'es/').
-     */
-    'locale' => env('EXPORT_LOCALE', null),
-
-    /*
-     * Available locales for the export. This is mainly for documentation
-     * purposes and validation in your application.
-     */
-    'locales' => [
-        'en' => 'English',
-        'fr' => 'French',
-        'es' => 'Spanish',
-        'de' => 'German',
-        'it' => 'Italian',
-        'pt' => 'Portuguese',
-        'ru' => 'Russian',
-        'ja' => 'Japanese',
-        'ko' => 'Korean',
-        'zh' => 'Chinese',
-    ],
-
-    /*
      * Shell commands that should be run before the export starts when running
      * `php artisan export`.
      *

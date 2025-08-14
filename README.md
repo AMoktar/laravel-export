@@ -194,40 +194,6 @@ Laravel Export supports exporting sites with locale-specific subdirectories. Whe
 
 **Note**: Locale subdirectories are only created when explicitly requested. Without the `--locale` option, files are exported to the root of the output directory as usual.
 
-#### Configuration
-
-You can document available locales in the configuration file:
-
-```php
-// config/export.php
-
-return [
-    // Other configuration...
-    
-    /*
-     * The default locale for exports. This is mainly for documentation
-     * and programmatic usage. To use locale subdirectories, you must
-     * explicitly pass the --locale option to the export command or call
-     * setLocale() programmatically.
-     * 
-     * When a locale is set, exported files will be placed in a subdirectory
-     * named after the locale (e.g., 'en/', 'fr/', 'es/').
-     */
-    'locale' => env('EXPORT_LOCALE', null),
-
-    /*
-     * Available locales for the export. This is mainly for documentation
-     * purposes and validation in your application.
-     */
-    'locales' => [
-        'en' => 'English',
-        'fr' => 'French',
-        'es' => 'Spanish',
-        // Add more locales as needed...
-    ],
-];
-```
-
 #### Command Usage
 
 **Default behavior (no locale):**
