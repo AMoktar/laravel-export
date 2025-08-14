@@ -180,3 +180,114 @@ it('exports paths with query parameters', function () {
     }
 });
 
+it('exports to subdirectory', function () {
+    $subdirectory = 'fr';
+    
+    // Export both to root (for afterEach) and subdirectory
+    app(Exporter::class)->export(); // For afterEach expectations
+    
+    app(Exporter::class)
+        ->subdirectory($subdirectory)
+        ->export();
+
+    // Check that files are exported to the subdirectory
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/index.html", HOME_CONTENT);
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/about/index.html", ABOUT_CONTENT);
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/feed/blog.atom", FEED_CONTENT);
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/redirect/index.html", REDIRECT_CONTENT);
+});
+
+it('exports to subdirectory with paths', function () {
+    $subdirectory = 'en';
+    
+    // Export to root first (for afterEach expectations)
+    app(Exporter::class)
+        ->crawl(false)
+        ->paths(['/', '/about', '/feed/blog.atom', '/redirect'])
+        ->export();
+    
+    app(Exporter::class)
+        ->crawl(false)
+        ->subdirectory($subdirectory)
+        ->paths(['/', '/about', '/feed/blog.atom', '/redirect'])
+        ->export();
+
+    // Check that files are exported to the subdirectory
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/index.html", HOME_CONTENT);
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/about/index.html", ABOUT_CONTENT);
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/feed/blog.atom", FEED_CONTENT);
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/redirect/index.html", REDIRECT_CONTENT);
+});
+
+it('exports to subdirectory with included files', function () {
+    $subdirectory = 'es';
+    
+    // Export to root first (for afterEach expectations)
+    app(Exporter::class)
+        ->includeFiles([__DIR__.'/stubs/public' => ''])
+        ->export();
+    
+    app(Exporter::class)
+        ->subdirectory($subdirectory)
+        ->includeFiles([__DIR__.'/stubs/public' => ''])
+        ->export();
+
+    // Check that files are exported to the subdirectory
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/index.html", HOME_CONTENT);
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/about/index.html", ABOUT_CONTENT);
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/feed/blog.atom", FEED_CONTENT);
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/redirect/index.html", REDIRECT_CONTENT);
+    
+    // Check that included files are also in the subdirectory
+    assertFileExists(__DIR__."/dist/{$subdirectory}/favicon.ico");
+    assertFileExists(__DIR__."/dist/{$subdirectory}/media/image.png");
+
+    expect(file_exists(__DIR__."/dist/{$subdirectory}/index.php"))->toBeFalse();
+});
+
+it('cleans only subdirectory when specified', function () {
+    $subdirectory = 'de';
+    
+    // First export without subdirectory to create root files
+    app(Exporter::class)->export();
+    
+    // Verify root files exist
+    assertFileExists(__DIR__.'/dist/index.html');
+    assertFileExists(__DIR__.'/dist/about/index.html');
+    
+    // Then export to subdirectory with clean enabled
+    app(Exporter::class)
+        ->subdirectory($subdirectory)
+        ->cleanBeforeExport(true)
+        ->export();
+
+    // Check that root files still exist (clean should only affect subdirectory)
+    assertFileExists(__DIR__.'/dist/index.html');
+    assertFileExists(__DIR__.'/dist/about/index.html');
+    
+    // Check that subdirectory files exist
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/index.html", HOME_CONTENT);
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/about/index.html", ABOUT_CONTENT);
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/feed/blog.atom", FEED_CONTENT);
+    assertExportedFile(__DIR__."/dist/{$subdirectory}/redirect/index.html", REDIRECT_CONTENT);
+});
+
+it('uses default subdirectory from config', function () {
+    // First export to root (for afterEach expectations)
+    app(Exporter::class)->export();
+    
+    // Set config default
+    config(['export.subdirectory' => 'config-default']);
+    
+    // Re-configure the exporter with the new config
+    app(Exporter::class)
+        ->subdirectory(config('export.subdirectory'))
+        ->export();
+
+    // Check that files are exported to the config default subdirectory
+    assertExportedFile(__DIR__.'/dist/config-default/index.html', HOME_CONTENT);
+    assertExportedFile(__DIR__.'/dist/config-default/about/index.html', ABOUT_CONTENT);
+    assertExportedFile(__DIR__.'/dist/config-default/feed/blog.atom', FEED_CONTENT);
+    assertExportedFile(__DIR__.'/dist/config-default/redirect/index.html', REDIRECT_CONTENT);
+});
+

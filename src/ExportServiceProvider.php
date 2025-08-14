@@ -14,8 +14,12 @@ class ExportServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/export.php', 'export');
 
-        $this->app->singleton(Destination::class, function () {
-            return new FilesystemDestination($this->getDisk());
+        $this->app->singleton('laravel-export.disk', function () {
+            return $this->getDisk();
+        });
+
+        $this->app->bind(Destination::class, function () {
+            return new FilesystemDestination($this->app->make('laravel-export.disk'));
         });
 
         $this->app->singleton(Exporter::class);
@@ -38,7 +42,8 @@ class ExportServiceProvider extends ServiceProvider
             ->crawl(config('export.crawl', false))
             ->paths(config('export.paths', []))
             ->includeFiles(config('export.include_files', []))
-            ->excludeFilePatterns(config('export.exclude_file_patterns', []));
+            ->excludeFilePatterns(config('export.exclude_file_patterns', []))
+            ->subdirectory(config('export.subdirectory', null));
     }
 
     protected function getDisk(): Filesystem
