@@ -242,10 +242,12 @@ Files are exported to the root of the output directory:
 ```bash
 php artisan export --locale=fr
 ```
-Files are exported to a locale subdirectory:
-- `/about` → `dist/fr/about/index.html`
-- `/blog/post` → `dist/fr/blog/post/index.html`
-- `/api/data.json` → `dist/fr/api/data.json`
+When using the `--locale` option:
+- The application locale is set to the specified locale (affects translations, date formatting, etc.)
+- Files are exported to a locale subdirectory:
+  - `/about` → `dist/fr/about/index.html`
+  - `/blog/post` → `dist/fr/blog/post/index.html`
+  - `/api/data.json` → `dist/fr/api/data.json`
 
 #### Programmatic Usage
 
@@ -254,11 +256,15 @@ You can also set the locale programmatically:
 ```php
 use Spatie\Export\Exporter;
 
+// Set both application locale and exporter locale
+app()->setLocale('fr');
 app(Exporter::class)
     ->setLocale('fr')
     ->paths(['/', '/about', '/contact'])
     ->export();
 ```
+
+**Note**: When using the `--locale` command option, both the application locale and exporter locale are set automatically. When using the programmatic API, you may want to set both manually if you need locale-dependent content (translations, etc.).
 
 ## Usage
 

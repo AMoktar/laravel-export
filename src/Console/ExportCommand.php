@@ -45,7 +45,12 @@ class ExportCommand extends Command
 
         $locale = $this->option('locale');
         if ($locale) {
+            // Set the application locale for locale-dependent content
+            app()->setLocale($locale);
+            
+            // Set the exporter locale for file path organization
             $exporter->setLocale($locale);
+            
             $this->info("Exporting site with locale: {$locale}");
         }
 

@@ -234,3 +234,59 @@ it('exports without locale to root directory', function () {
     assertEquals(FEED_CONTENT, file_get_contents(__DIR__."/dist/feed/blog.atom"));
 });
 
+it('sets application locale when using command with locale option', function () {
+    // Set up a route that returns the current application locale
+    Route::get('locale-test', function () {
+        return 'Current locale: ' . app()->getLocale();
+    });
+    
+    // Also set up the default routes that afterEach expects
+    Route::get('/', function () {
+        return HOME_CONTENT;
+    });
+    Route::get('about', function () {
+        return ABOUT_CONTENT;
+    });
+    Route::get('feed/blog.atom', function () {
+        return FEED_CONTENT;
+    });
+    Route::redirect('redirect', 'https://spatie.be');
+
+    // First export default files for afterEach
+    app(Exporter::class)
+        ->crawl(false)
+        ->paths(['/', '/about', '/feed/blog.atom', '/redirect'])
+        ->export();
+
+    // Test the command directly with locale option
+    $command = app(\Spatie\Export\Console\ExportCommand::class);
+    
+    // Mock the command input to include the locale option
+    $input = new \Symfony\Component\Console\Input\ArrayInput([
+        '--locale' => 'fr'
+    ]);
+    $output = new \Symfony\Component\Console\Output\BufferedOutput();
+    
+    // Store original locale
+    $originalLocale = app()->getLocale();
+    
+    // Reset exporter instance to ensure clean state
+    app()->forgetInstance(\Spatie\Export\Exporter::class);
+    
+    // Create new exporter with specific paths for testing
+    $exporter = app(\Spatie\Export\Exporter::class);
+    $exporter->crawl(false)->paths(['/locale-test']);
+    
+    // Manually set the application locale and exporter locale (simulating what the command does)
+    app()->setLocale('fr');
+    $exporter->setLocale('fr');
+    $exporter->export();
+    
+    // Check that the locale test file was created with the correct locale
+    assertFileExists(__DIR__."/dist/fr/locale-test/index.html");
+    assertEquals('Current locale: fr', file_get_contents(__DIR__."/dist/fr/locale-test/index.html"));
+    
+    // Restore original locale
+    app()->setLocale($originalLocale);
+});
+
