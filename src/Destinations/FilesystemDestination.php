@@ -10,22 +10,35 @@ class FilesystemDestination implements Destination
     /** @var \Illuminate\Contracts\Filesystem */
     protected $filesystem;
 
-    public function __construct(Filesystem $filesystem)
+    /** @var string|null */
+    protected $subdirectory;
+
+    public function __construct(Filesystem $filesystem, ?string $subdirectory = null)
     {
         $this->filesystem = $filesystem;
+        $this->subdirectory = $subdirectory;
     }
 
     public function clean()
     {
-        $this->filesystem->delete($this->filesystem->files());
+        if ($this->subdirectory) {
+            // Clean only the subdirectory
+            if ($this->filesystem->exists($this->subdirectory)) {
+                $this->filesystem->deleteDirectory($this->subdirectory);
+            }
+        } else {
+            // Clean everything (existing behavior)
+            $this->filesystem->delete($this->filesystem->files());
 
-        foreach ($this->filesystem->directories() as $directory) {
-            $this->filesystem->deleteDirectory($directory);
+            foreach ($this->filesystem->directories() as $directory) {
+                $this->filesystem->deleteDirectory($directory);
+            }
         }
     }
 
     public function write(string $path, string $contents)
     {
-        $this->filesystem->put($path, $contents);
+        $finalPath = $this->subdirectory ? $this->subdirectory . '/' . ltrim($path, '/') : $path;
+        $this->filesystem->put($finalPath, $contents);
     }
 }

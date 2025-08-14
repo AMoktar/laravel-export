@@ -5,6 +5,7 @@ namespace Spatie\Export;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Support\Str;
+use Spatie\Export\Destinations;
 use Spatie\Export\Jobs\CleanDestination;
 use Spatie\Export\Jobs\CrawlSite;
 use Spatie\Export\Jobs\ExportPath;
@@ -17,6 +18,9 @@ class Exporter
 
     /** @var UrlGenerator */
     protected $urlGenerator;
+
+    /** @var \Illuminate\Contracts\Container\Container */
+    protected $app;
 
     /** @var bool */
     protected $cleanBeforeExport = false;
@@ -33,10 +37,14 @@ class Exporter
     /** @var string[] */
     protected $excludeFilePatterns = [];
 
+    /** @var string|null */
+    protected $subdirectory = null;
+
     public function __construct(Dispatcher $dispatcher, UrlGenerator $urlGenerator)
     {
         $this->dispatcher = $dispatcher;
         $this->urlGenerator = $urlGenerator;
+        $this->app = app();
     }
 
     public function cleanBeforeExport(bool $cleanBeforeExport): self
@@ -85,6 +93,28 @@ class Exporter
         $this->excludeFilePatterns = array_merge($this->excludeFilePatterns, $excludeFilePatterns);
 
         return $this;
+    }
+
+    public function subdirectory(?string $subdirectory): self
+    {
+        $this->subdirectory = $subdirectory;
+
+        // Update the destination binding with the new subdirectory
+        if ($subdirectory) {
+            $this->app->bind(Destination::class, function () {
+                return new Destinations\FilesystemDestination(
+                    $this->app->make('laravel-export.disk'), 
+                    $this->subdirectory
+                );
+            });
+        }
+
+        return $this;
+    }
+
+    public function getSubdirectory(): ?string
+    {
+        return $this->subdirectory;
     }
 
     public function export()

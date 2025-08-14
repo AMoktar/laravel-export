@@ -36,6 +36,7 @@ class ExportCommand extends Command
         $this->addOption('skip-all', null, InputOption::VALUE_NONE, 'Skip all hooks');
         $this->addOption('skip-before', null, InputOption::VALUE_NONE, 'Skip all before hooks');
         $this->addOption('skip-after', null, InputOption::VALUE_NONE, 'Skip all after hooks');
+        $this->addOption('subdirectory', null, InputOption::VALUE_REQUIRED, 'Export to a subdirectory within the destination');
     }
 
     public function handle(Exporter $exporter)
@@ -44,13 +45,18 @@ class ExportCommand extends Command
 
         $this->info('Exporting site...');
 
+        if ($subdirectory = $this->option('subdirectory')) {
+            $exporter->subdirectory($subdirectory);
+        }
+
         $exporter->export();
 
-        if (config('export.disk')) {
-            $this->info('Files were saved to disk `'.config('export.disk').'`');
-        } else {
-            $this->info('Files were saved to `dist`');
+        $destination = config('export.disk') ? 'disk `'.config('export.disk').'`' : '`dist`';
+        if ($subdirectory) {
+            $destination .= " in subdirectory `{$subdirectory}`";
         }
+        
+        $this->info("Files were saved to {$destination}");
 
         $this->runAfterHooks();
     }

@@ -50,6 +50,18 @@ return [
     'disk' => null,
 
     /*
+     * Default subdirectory for exports. When set, all exports will be placed
+     * in this subdirectory within the destination.
+     * 
+     * This can be overridden by using the --subdirectory option when running
+     * the export command or by calling the subdirectory() method on the Exporter.
+     * 
+     * Useful for multi-locale sites where you want to export each locale
+     * to its own subdirectory (e.g., 'fr', 'en', 'es').
+     */
+    'subdirectory' => null,
+
+    /*
      * Shell commands that should be run before the export starts when running
      * `php artisan export`.
      *

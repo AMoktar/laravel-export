@@ -188,6 +188,85 @@ php artisan export --skip-after
 php artisan export --skip-all
 ```
 
+### Exporting to a subdirectory
+
+You can export your site to a subdirectory within your configured destination using the `--subdirectory` option:
+
+```bash
+php artisan export --subdirectory=fr
+```
+
+This is particularly useful for multi-locale sites where you want each language version in its own subdirectory:
+
+```bash
+php artisan export --subdirectory=en
+php artisan export --subdirectory=fr  
+php artisan export --subdirectory=es
+```
+
+You can also set a default subdirectory in your config file:
+
+```php
+// config/export.php
+return [
+    'subdirectory' => 'en', // All exports will go to 'en' subdirectory by default
+];
+```
+
+Or use it programmatically:
+
+```php
+use Spatie\Export\Exporter;
+
+app(Exporter::class)
+    ->subdirectory('fr')
+    ->export();
+```
+
+When using subdirectories with the `clean_before_export` option, only the specific subdirectory will be cleaned, leaving other subdirectories and root files intact.
+
+### Multi-locale example
+
+Here's how you could set up a multi-locale export workflow:
+
+```bash
+# Export each locale to its own subdirectory
+php artisan export --subdirectory=en
+php artisan export --subdirectory=fr  
+php artisan export --subdirectory=de
+php artisan export --subdirectory=es
+```
+
+Or programmatically:
+
+```php
+use Spatie\Export\Exporter;
+
+$locales = ['en', 'fr', 'de', 'es'];
+
+foreach ($locales as $locale) {
+    app()->setLocale($locale);
+    
+    app(Exporter::class)
+        ->subdirectory($locale)
+        ->export();
+}
+```
+
+This will create a structure like:
+```
+dist/
+├── en/
+│   ├── index.html
+│   ├── about/
+│   └── ...
+├── fr/
+│   ├── index.html
+│   ├── about/
+│   └── ...
+└── ...
+```
+
 ## Usage
 
 To build a bundle, run the `export` command:
